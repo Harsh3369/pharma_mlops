@@ -36,8 +36,8 @@ setup(
     extras_require={"local": LOCAL_REQUIREMENTS, "test": TEST_REQUIREMENTS},
     entry_points = {
         "console_scripts": [
-            "etl = physician_conversion_mlops.tasks.sample_etl_task:entrypoint",
-            "ml = physician_conversion_mlops.tasks.sample_ml_task:entrypoint",
+            "feature_pipeline = physician_conversion_mlops.physician_conversion_mlops.tasks.feature_pipeline:entrypoint",
+            #"ml = physician_conversion_mlops.tasks.sample_ml_task:entrypoint",
     ]},
     version=__version__,
     description="",
