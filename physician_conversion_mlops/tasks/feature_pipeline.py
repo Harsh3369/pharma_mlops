@@ -1,20 +1,60 @@
 #system dependencies
-import os
-import datetime
-
-#computation denendencies
 import pandas as pd
 import numpy as np
 
+
+from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder
+import warnings
+import os
+import boto3
+import urllib
+import pickle
+from pyspark.sql import SparkSession
+from io import BytesIO
+
 #useful functions
-from physician_conversion_mlops.common import Task
+from physician_conversion_mlops.physician_conversion_mlops.common import Task
+
+from physician_conversion_mlops.physician_conversion_mlops.utils import utils
 
 #pyspark and feature store 
+import os
+import datetime
 from pyspark.dbutils import DBUtils
-from databricks.feature_store import feature_table, FeatureLookup
 
 #warnings
 warnings.filterwarnings('ignore')
 
-class feature_pipeline(Task):
-    def 
+# if __name__ == "__main__":
+#     df_input = utils.load_data_from_s3()
+
+
+class DataPrep(Task):    
+  
+    def _preprocess_data(self):
+                
+                df_input = utils.load_data_from_s3()
+
+                df_input = df_input.reset_index()
+        
+                
+                push_status = self.push_df_to_s3(df_input)
+                print(push_status)
+
+                
+
+    def launch(self):
+         
+         self._preprocess_data()
+
+   
+
+def entrypoint():  
+    
+    task = DataPrep()
+    task.launch()
+
+
+if __name__ == '__main__':
+    entrypoint()
+

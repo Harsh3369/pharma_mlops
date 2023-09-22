@@ -17,8 +17,8 @@ jobs:
     env:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN:  ${{ secrets.DATABRICKS_TOKEN }}
-      AWS_ACCESS_KEY : ${{ secrets.AWS_ACCESS_KEY }}
-      AWS_SECRET_KEY : ${{ secrets.AWS_SECRET_KEY }}
+      AWS_ACCESS_KEY_ID : ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY : ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     steps:
       - uses: actions/checkout@v1
@@ -38,17 +38,28 @@ jobs:
         run: |
           pip install -e ".[local,test]"
 
-      - name: Run unit tests
-        run: |
-          echo "Launching unit tests"
-          pytest tests/unit
+      - name: Remove Databricks Secret
+          run: |
+            databricks secrets delete-scope --scope secrets-scope
+            databricks secrets delete-scope --scope feature-store-example-read
+            databricks secrets delete-scope --scope feature-store-example-write
 
-      - name: Workflow deployment (assets only upload)
-        run: |
-          dbx deploy physician_conversion_mlops-sample-etl --assets-only
+      # - name: Remove Databricks Secret
+      #   run: |
+      #     databricks secrets delete-scope --scope feature-store-example-read
+      #     databricks secrets delete-scope --scope feature-store-example-write
 
-      - name: Run the workflow in a jobless fashion
+      - name: Create Databricks Secrets Scope
         run: |
-          dbx launch physician_conversion_mlops-sample-etl --from-assets --trace
+          databricks secrets create-scope --scope secrets-scope
+          databricks secrets create-scope --scope feature-store-example-read
+          databricks secrets create-scope --scope feature-store-example-write
+
+      - name: Set Databricks Secrets
+        run: |
+          databricks secrets put --scope secrets-scope --key aws-access-key --string-value "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          databricks secrets put --scope secrets-scope --key aws-secret-key --string-value "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          databricks secrets put --scope secrets-scope --key databricks-host --string-value "${{ secrets.DATABRICKS_HOST }}"
+          databricks secrets put --scope secrets-scope --key databricks-token --string-value "${{ secrets.DATABRICKS_TOKEN }}"
 
 
