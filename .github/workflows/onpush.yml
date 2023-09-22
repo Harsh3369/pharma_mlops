@@ -17,8 +17,6 @@ jobs:
     env:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN:  ${{ secrets.DATABRICKS_TOKEN }}
-
-    s3:
       AWS_ACCESS_KEY : ${{ secrets.AWS_ACCESS_KEY }}
       AWS_SECRET_KEY : ${{ secrets.AWS_SECRET_KEY }}
 
