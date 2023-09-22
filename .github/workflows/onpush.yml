@@ -64,5 +64,5 @@ jobs:
 
       - name: Run the feature_pipeline
         run: |
-          dbx launch /physician_conversion_mlops/physician_conversion_mlops/tasks/feature_pipeline.py
+          dbx launch /physician_conversion_mlops/tasks/feature_pipeline.py
 
