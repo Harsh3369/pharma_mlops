@@ -62,7 +62,7 @@ jobs:
           databricks secrets put --scope secrets-scope --key databricks-host --string-value "${{ secrets.DATABRICKS_HOST }}"
           databricks secrets put --scope secrets-scope --key databricks-token --string-value "${{ secrets.DATABRICKS_TOKEN }}"
 
-      - name: Run the Feature_pipeline workflow in a jobless fashion
+      - name: Run the feature_pipeline workflow in a jobless fashion
         run: |
-          dbx launch Feature_pipeline --from-assets --trace
+          dbx launch feature_pipeline --from-assets --trace
 
