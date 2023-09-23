@@ -83,8 +83,7 @@ class DataPrep(Task):
                 top_n_col_list = top_n_col_list.tolist()
 
                 # Dump top_n_col_list to s3 bucket
-                pickle_file_path = self.conf['preprocessed']['pickle_file_dump_list']
-                utils.pickle_dump(self,top_n_col_list,pickle_file_path)
+                utils.pickle_dump_list_to_s3(self,top_n_col_list)
                 
                 #column list for dataframe
                 cols_for_model_df_list = id_col_list + top_n_col_list
