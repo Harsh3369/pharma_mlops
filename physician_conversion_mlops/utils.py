@@ -145,7 +145,7 @@ class utils(Task):
             pickle.dump(column_list, file)
 
         # Upload the pickled file to S3
-        s3.upload_file(file_name, bucket_name, folder_path + file_name)
+        s3.Bucket(bucket_name).upload_file(file_name, folder_path + file_name)
 
         print(f"Pickled file '{file_name}' uploaded to S3 bucket '{bucket_name}' in folder '{folder_path}'.")
 
