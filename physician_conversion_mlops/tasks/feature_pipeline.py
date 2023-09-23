@@ -71,11 +71,12 @@ class DataPrep(Task):
 
                 #Feature Selection Using Select K Best
                 n = self.conf['param_values']['select_k_best_feature_num']
-                id_col_list = ['NPI_ID', 'HCP_ID']
+                id_col_list = self.conf['feature_transformation']['id_col_list']
                 target_col = self.conf['feature_transformation']['target_col']
+                df = df_input.drop(id_col_list,axis=1)
                 
-                top_n_col_list = utils.select_kbest_features(
-                      df_input.drop(id_col_list,axis=1),target_col, n)
+                top_n_col_list = utils.select_kbest_features(self,
+                      df,target_col, n)
                 
                 #Convert to list
                 top_n_col_list = top_n_col_list.tolist()
