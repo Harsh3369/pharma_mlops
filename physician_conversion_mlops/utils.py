@@ -88,7 +88,7 @@ class utils(Task):
         return df_input
     
 
-    def select_kbest_features(df, target_col,n):
+    def select_kbest_features(self, df, target_col,n):
         """
         Selects the top n features from the DataFrame using the SelectKBest algorithm.
 
