@@ -100,7 +100,8 @@ class DataPrep(Task):
                 spark = SparkSession.builder.appName("FeatureStoreExample").getOrCreate()
                 spark.sql(f"CREATE DATABASE IF NOT EXISTS {self.conf['feature_store']['table_name']}")
 
-                df_spark = spark.createDataFrame(df_model_input)
+                df_feature = df_model_input.drop(target_col, axis = 1)
+                df_spark = spark.createDataFrame(df_feature)
 
                 fs = feature_store.FeatureStoreClient()
 
@@ -108,7 +109,7 @@ class DataPrep(Task):
                         name=self.conf['feature_store']['table_name'],
                         df=df_spark,
                         primary_keys=self.conf['feature_store']['lookup_key'],
-                        labels=self.conf['feature_store']['label'],
+                        #labels=self.conf['feature_store']['label'],
                         schema=df_spark.schema,
                         description=self.conf['feature_store']['description']
                     )
