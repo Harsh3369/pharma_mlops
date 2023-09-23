@@ -33,7 +33,7 @@ class DataPrep(Task):
   
     def _preprocess_data(self):
                 
-                df_input = utils.load_data_from_s3()
+                df_input = utils.load_data_from_s3(self)
 
                 df_input = df_input.reset_index()
         
