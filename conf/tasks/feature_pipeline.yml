@@ -8,7 +8,8 @@ preprocessed:
     x_test: 'preprocessed/x_test.csv'
     y_test: 'preprocessed/y_test.csv'
     encoders_path: 'preprocessed/encoders.pkl'
-    pickle_file_dump_list: "preprocessed/top_n_list_selectKbest.pkl"
+    model_variable_list_file_path: "preprocessed"
+    model_variable_list_file_name: "top_n_list_selectKbest.pkl"
 
 feature_transformation:
     drop_column_list : ['HCO_Affiliation']
