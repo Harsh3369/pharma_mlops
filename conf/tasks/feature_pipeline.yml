@@ -14,6 +14,7 @@ feature_transformation:
     drop_column_list : ['HCO_Affiliation']
     one_hot_encode_feature_list :  ['Sex', 'Specialty', 'HCO_Affiliation_Type']
     id_target_col_list : ['NPI_ID', 'HCP_ID', 'TARGET']
+    id_col_list : ['NPI_ID', 'HCP_ID']
     target_col : ['TARGET']
 
 param_values:
