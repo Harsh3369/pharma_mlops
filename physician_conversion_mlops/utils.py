@@ -8,7 +8,7 @@ import uuid
 
 
 #useful functions
-from physician_conversion_mlops.physician_conversion_mlops.common import Task
+from physician_conversion_mlops.common import Task
 from pyspark.sql import SparkSession
 #from pyspark.dbutils import DBUtils
 
