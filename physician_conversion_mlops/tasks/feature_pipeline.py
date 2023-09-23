@@ -24,6 +24,8 @@ from physician_conversion_mlops.utils import utils
 import os
 import datetime
 from pyspark.dbutils import DBUtils
+from databricks import feature_store
+from databricks.feature_store import feature_table, FeatureLookup
 
 #warnings
 warnings.filterwarnings('ignore')
@@ -93,7 +95,24 @@ class DataPrep(Task):
                 push_status = utils.push_df_to_s3(self,df_model_input)
                 print(push_status)
 
-                
+
+                #Save df_model_input to databricks feature store
+                spark = SparkSession.builder.appName("FeatureStoreExample").getOrCreate()
+                spark.sql(f"CREATE DATABASE IF NOT EXISTS {self.conf['feature_store']['table_name']}")
+
+                df_spark = spark.createDataFrame(df_model_input)
+
+                fs = feature_store.FeatureStoreClient()
+
+                fs.create_table(
+                        name=self.conf['feature_store']['table_name'],
+                        df=df_spark,
+                        primary_keys=self.conf['feature_store']['lookup_key'],
+                        labels=self.conf['feature_store']['label'],
+                        schema=df_spark.schema,
+                        description=self.conf['feature_store']['description']
+                    )
+                print("Feature Store is created")
 
     def launch(self):
          
@@ -109,4 +128,3 @@ def entrypoint():
 
 if __name__ == '__main__':
     entrypoint()
-
