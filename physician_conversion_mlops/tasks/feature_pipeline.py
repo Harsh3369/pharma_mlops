@@ -38,7 +38,7 @@ class DataPrep(Task):
                 df_input = df_input.reset_index()
         
                 
-                push_status = utils.push_df_to_s3(df_input)
+                push_status = utils.push_df_to_s3(self,df_input)
                 print(push_status)
 
                 
