@@ -18,9 +18,9 @@ class utils(Task):
     def push_df_to_s3(self,df):
 
         # AWS credentials and region
-        aws_region = self.conf['s3'][aws_region]
-        bucket_name = self.conf['s3'][bucket_name]
-        file_path = self.conf['s3'][file_path]
+        aws_region = self.conf['s3']['aws_region']
+        bucket_name = self.conf['s3']['bucket_name']
+        file_path = self.conf['s3']['file_path']
 
         spark = SparkSession.builder.appName("CSV Loading Example").getOrCreate()
 
@@ -30,8 +30,8 @@ class utils(Task):
         aws_secret_key = dbutils.secrets.get(scope="secrets-scope", key="aws-secret-key")
         
         
-        access_key = aws_access_key 
-        secret_key = aws_secret_key
+        # access_key = aws_access_key 
+        # secret_key = aws_secret_key
 
         csv_buffer = BytesIO()
         df.to_csv(csv_buffer, index=False)
@@ -50,9 +50,9 @@ class utils(Task):
     def load_data_from_s3(self):
 
         # AWS credentials and region
-        aws_region = self.conf['s3'][aws_region]
-        bucket_name = self.conf['s3'][bucket_name]
-        file_path = self.conf['s3'][file_path]
+        aws_region = self.conf['s3']['aws_region']
+        bucket_name = self.conf['s3']['bucket_name']
+        file_path = self.conf['s3']['file_path']
 
         spark = SparkSession.builder.appName("CSV Loading Example").getOrCreate()
 
