@@ -110,25 +110,44 @@ class utils(Task):
         return top_n_features
         
         
-    def pickle_dump(self,list_columns,path):
-        with open(path,"wb") as file:
-            pickle.dump(list_columns,file)
-        aws_region = self.conf['s3']['aws_region']
-        bucket_name = self.conf['s3']['bucket_name']
-        file_path = self.conf['s3']['file_path']
+    def pickle_dump_list_to_s3(self, column_list):
+        """
+        Pickle dump a list of columns and upload it to an S3 bucket in the specified folder.
 
+        Args:
+        - column_list: List of columns to pickle.
+
+        Returns:
+        - upload pickle list to s3
+        """
+        # AWS details
         spark = SparkSession.builder.appName("CSV Loading Example").getOrCreate()
 
-        dbutils = DBUtils(spark)
+        bucket_name = self.conf['s3']['bucket_name']
+        aws_region = self.conf['s3']['aws_region']
+        folder_path = self.conf['preprocessed']['model_variable_list_file_path']
+        file_name = self.conf['preprocessed']['model_variable_list_file_name']
 
+        dbutils = DBUtils(spark)
         aws_access_key = dbutils.secrets.get(scope="secrets-scope", key="aws-access-key")
         aws_secret_key = dbutils.secrets.get(scope="secrets-scope", key="aws-secret-key")
+        access_key = aws_access_key 
+        secret_key = aws_secret_key
+        print(f"Access key and secret key are {access_key} and {secret_key}")
 
+        # Create an S3 client
         s3 = boto3.resource("s3",aws_access_key_id=aws_access_key, 
-                    aws_secret_access_key=aws_secret_key, 
-                    region_name=aws_region)
+                      aws_secret_access_key=aws_secret_key, 
+                      region_name=aws_region)
 
-        pickled_data = pickle.dumps(path)
-        s3_object_key = self.conf['preprocessed']['pickle_file_dump_list'] 
-        s3.Object(self.conf['s3']['bucket_name'], s3_object_key).put(Body=pickled_data)
+        # Pickle dump the list
+        with open(file_name, 'wb') as file:
+            pickle.dump(column_list, file)
+
+        # Upload the pickled file to S3
+        s3.upload_file(file_name, bucket_name, folder_path + file_name)
+
+        print(f"Pickled file '{file_name}' uploaded to S3 bucket '{bucket_name}' in folder '{folder_path}'.")
+
+        
 
