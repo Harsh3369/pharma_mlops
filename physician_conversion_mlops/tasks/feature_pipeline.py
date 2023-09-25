@@ -1,44 +1,44 @@
-#system dependencies
+#Basic ML dependencies
 import pandas as pd
 import numpy as np
 
-
+#ML Training dependencies
 from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif
+
+#System and Env Dependencies
 import warnings
 import os
 import boto3
 import urllib
 import pickle
-from pyspark.sql import SparkSession
 from io import BytesIO
-
-#useful functions
-from physician_conversion_mlops.common import Task
-
-from physician_conversion_mlops.utils import utils
-
-#pyspark and feature store 
-import os
 import datetime
+
+#Spark and Databricks Dependencies
+from pyspark.sql import SparkSession
 from pyspark.dbutils import DBUtils
 from databricks import feature_store
 from databricks.feature_store import feature_table, FeatureLookup
 
+#useful functions
+from physician_conversion_mlops.common import Task
+from physician_conversion_mlops.utils import utils
+
 #warnings
 warnings.filterwarnings('ignore')
-
-# if __name__ == "__main__":
-#     df_input = utils.load_data_from_s3()
 
 
 class DataPrep(Task):    
   
     def _preprocess_data(self):
                 
-                df_input = utils.load_data_from_s3(self)
+                bucket_name = self.conf['s3']['bucket_name']
+                file_path = self.conf['s3']['file_path']
+
+                df_input = utils.load_data_from_s3(self,bucket_name,file_path)
 
                 df_input = df_input.reset_index()
 
@@ -70,8 +70,12 @@ class DataPrep(Task):
                 
                 #remove above list column from master dataframe
                 df_input.drop(remove_col_list, axis = 1, inplace = True, errors= 'ignore')
+                
+                push_status = utils.push_df_to_s3(self,df_input) #saving the entire feature engineered data
+                print(push_status)
 
-                #Feature Selection Using Select K Best
+
+                #Feature Selection Using Select K Best for training pipeline
                 n = self.conf['param_values']['select_k_best_feature_num']
                 id_col_list = self.conf['feature_transformation']['id_col_list']
                 target_col = self.conf['feature_transformation']['target_col']
@@ -84,23 +88,22 @@ class DataPrep(Task):
                 #Convert to list
                 top_n_col_list = top_n_col_list.tolist()
 
-                # Dump top_n_col_list to s3 bucket
+                # Dump top_n_col_list to s3 bucket to be used for training model
                 utils.pickle_dump_list_to_s3(self,top_n_col_list)
                 
                 #column list for dataframe
-                cols_for_model_df_list = id_col_list + top_n_col_list
-                df_feature_eng_output = df_input[cols_for_model_df_list]
-                df_model_input = df_feature_eng_output.copy()
+                # cols_for_model_df_list = id_col_list + top_n_col_list
+                # df_feature_eng_output = df_input[cols_for_model_df_list]
+                # df_model_input = df_feature_eng_output.copy()
                 
-                push_status = utils.push_df_to_s3(self,df_model_input)
-                print(push_status)
+                
 
 
-                #Save df_model_input to databricks feature store
+                #Save df_input to databricks feature store
                 spark = SparkSession.builder.appName("FeatureStoreExample").getOrCreate()
                 spark.sql(f"CREATE DATABASE IF NOT EXISTS {self.conf['feature_store']['table_name']}")
 
-                df_feature = df_model_input.drop(target_col, axis = 1)
+                df_feature = df_input.drop(target_col, axis = 1) #saving the entire features created
                 df_spark = spark.createDataFrame(df_feature)
 
                 fs = feature_store.FeatureStoreClient()
