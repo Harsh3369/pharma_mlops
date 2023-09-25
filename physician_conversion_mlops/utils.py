@@ -18,13 +18,10 @@ from pyspark.dbutils import DBUtils
 
 class utils(Task):
 
-    def push_df_to_s3(self,df):
+    def push_df_to_s3(self,df,file_path):
 
         # AWS credentials and region
         aws_region = self.conf['s3']['aws_region']
-        bucket_name = self.conf['s3']['bucket_name']
-        file_path = self.conf['s3']['file_path']
-
         spark = SparkSession.builder.appName("CSV Loading Example").getOrCreate()
 
         dbutils = DBUtils(spark)
@@ -44,8 +41,8 @@ class utils(Task):
                     aws_secret_access_key=aws_secret_key, 
                     region_name=aws_region)
 
-        s3_object_key = self.conf['preprocessed']['preprocessed_df_path'] 
-        s3.Object(self.conf['s3']['bucket_name'], s3_object_key).put(Body=csv_content)
+        #s3_object_key = self.conf['preprocessed']['preprocessed_df_path'] 
+        s3.Object(self.conf['s3']['bucket_name'], file_path).put(Body=csv_content)
 
         return {"df_push_status": 'success'}
     

@@ -77,20 +77,25 @@ class Trainmodel(Task):
                                                                          stratify= y)
         
 
-        #Save above datasets to s3
-        
-        
         #Creating training df for model training by mering X_train, y_train
         X_df = pd.DataFrame(X)
         y_df = pd.DataFrame(y)
+        inference_df = pd.DataFrame(X_inference)
 
         frames = [X_df,y_df]
         training_df = pd.concat(frames)
 
+        #Save above datasets to s3
+        file_path_training = self.conf['s3']['df_training_set']
+        utils.push_df_to_s3(self,training_df,file_path_training)
+
+        file_path_infernece = self.conf['s3']['df_inference_set']
+        utils.push_df_to_s3(self,inference_df,file_path_infernece)
+
         #load column list to be used for model training from from s3 
         bucket_name = self.conf['s3']['bucket_name']
         file_name = self.conf['s3']['model_variable_list_file_path']
-        model_features_list = utils.load_pickle_from_s3(bucket_name, file_name)
+        model_features_list = utils.load_pickle_from_s3(self,bucket_name, file_name)
 
 
         model_feature_lookups = [

@@ -80,7 +80,8 @@ class DataPrep(Task):
                 #remove above list column from master dataframe
                 df_input.drop(remove_col_list, axis = 1, inplace = True, errors= 'ignore')
                 
-                push_status = utils.push_df_to_s3(self,df_input) #saving the entire feature engineered data
+                file_path = self.conf['preprocessed']['preprocessed_df_path']
+                push_status = utils.push_df_to_s3(self,df_input,file_path) #saving the entire feature engineered data
                 print(push_status)
 
 

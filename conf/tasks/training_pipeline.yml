@@ -3,9 +3,14 @@ s3:
   file_path: "preprocessed/preprocessed_df.csv"
   aws_region : 'ap-south-1'  # Replace with your desired AWS region
   model_variable_list_file_path: "preprocessed/top_n_list_selectKbest.pkl"
+  df_inference_set : "processed_dataframes/df_inference.csv"
+  df_validation_set : "processed_dataframes/df_validation.csv"
+  df_training_set : "processed_dataframes/df_train.csv"
+
 
 train_model_parameters:
   inference_size : 0.1 #As it is a demo project we are creating Inference set here for infernece pipeline
+  test_size : 0.2
   
 feature_store:
     table_name: "physician_conversion_feature_table"
