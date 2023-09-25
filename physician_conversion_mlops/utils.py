@@ -50,12 +50,11 @@ class utils(Task):
         return {"df_push_status": 'success'}
     
 
-    def load_data_from_s3(self):
+    def load_data_from_s3(self, bucket_name,file_path):
 
         # AWS credentials and region
         aws_region = self.conf['s3']['aws_region']
-        bucket_name = self.conf['s3']['bucket_name']
-        file_path = self.conf['s3']['file_path']
+        
 
         spark = SparkSession.builder.appName("CSV Loading Example").getOrCreate()
 
@@ -149,5 +148,36 @@ class utils(Task):
 
         print(f"Pickled file '{file_name}' uploaded to S3 bucket '{bucket_name}' in folder '{folder_path}'.")
 
-        
+    
+    def load_pickle_from_s3(self,bucket_name, file_path):
+        try:
+            # Create an S3 client
+            aws_region = self.conf['s3']['aws_region']
+            spark = SparkSession.builder.appName("CSV Loading Example").getOrCreate()
+            dbutils = DBUtils(spark)
+            aws_access_key = dbutils.secrets.get(scope="secrets-scope", key="aws-access-key")
+            aws_secret_key = dbutils.secrets.get(scope="secrets-scope", key="aws-secret-key")
+            access_key = aws_access_key 
+            secret_key = aws_secret_key
+            print(f"Access key and secret key are {access_key} and {secret_key}")
+
+            s3 = boto3.resource("s3",aws_access_key_id=aws_access_key, 
+                      aws_secret_access_key=aws_secret_key, 
+                      region_name=aws_region)
+                
+
+            s3_object = s3.Object(bucket_name, file_path)
+
+            # Read the pickle file from the S3 response
+            pickle_data = s3_object['Body'].read()
+
+            # Deserialize the pickle data to obtain the Python object (list in this case)
+            loaded_list = pickle.loads(pickle_data)
+
+            return loaded_list
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            return None
+    
+
 
