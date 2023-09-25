@@ -24,5 +24,14 @@ environments:
                     package_name: "physician_conversion_mlops"
                     entry_point: "feature_pipeline"
                     parameters: ["--conf-file", "file:fuse://conf/tasks/feature_pipeline.yml"]
+      
+      - name: "training_pipeline"
+        tasks:
+          - task_key: "main"
+            <<: *basic-static-cluster
+            python_wheel_task:
+                    package_name: "physician_conversion_mlops"
+                    entry_point: "training_pipeline"
+                    parameters: ["--conf-file", "file:fuse://conf/tasks/training_pipeline.yml"]
                     
      

@@ -38,11 +38,11 @@ jobs:
         run: |
           pip install -e ".[local,test]"
 
-      - name: Remove Databricks Secret
-        run: |
-          databricks secrets delete-scope --scope secrets-scope
-          databricks secrets delete-scope --scope feature-store-example-read
-          databricks secrets delete-scope --scope feature-store-example-write
+      # - name: Remove Databricks Secret
+      #   run: |
+      #     databricks secrets delete-scope --scope secrets-scope
+      #     databricks secrets delete-scope --scope feature-store-example-read
+      #     databricks secrets delete-scope --scope feature-store-example-write
 
       # - name: Remove Databricks Secret
       #   run: |
@@ -69,3 +69,11 @@ jobs:
       - name: Run the feature_pipeline workflow in a jobless fashion
         run: |
           dbx launch feature_pipeline --from-assets --trace 
+
+      - name: Workflow  training_pipeline deploy
+        run: |
+          dbx deploy training_pipeline --assets-only
+
+      - name: Run the training_pipeline workflow in a jobless fashion
+        run: |
+          dbx launch training_pipeline --from-assets --trace 
