@@ -36,7 +36,8 @@ setup(
     extras_require={"local": LOCAL_REQUIREMENTS, "test": TEST_REQUIREMENTS},
     entry_points = {
         "console_scripts": [
-            "feature_pipeline = physician_conversion_mlops.tasks.feature_pipeline:entrypoint"
+            "feature_pipeline = physician_conversion_mlops.tasks.feature_pipeline:entrypoint",
+            "training_pipeline = physician_conversion_mlops.tasks.training_pipeline:entrypoint"
     ]},
     version=__version__,
     description="",
