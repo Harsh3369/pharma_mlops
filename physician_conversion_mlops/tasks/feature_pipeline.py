@@ -54,6 +54,15 @@ class DataPrep(Task):
                 encode_col_list = self.conf['feature_transformation']['one_hot_encode_feature_list']
                 df_input = pd.get_dummies(df_input, columns=encode_col_list, drop_first=True)
 
+                #Clean column names
+                df_input.columns = [c.replace('(', '').replace(')', '').replace(',', '')
+                              .replace(';', '').replace('{', '').replace('}', '')
+                              .replace('\n', '').replace('\t', '').replace(' ', '_') 
+                              for c in df_input.columns]
+                
+                print(df_input.columns)
+                print('')
+
                 #Select variables for feature selection
                 id_target_col_list = self.conf['feature_transformation']['id_target_col_list']
                 col_for_feature_selection = df_input.columns.difference(id_target_col_list)
