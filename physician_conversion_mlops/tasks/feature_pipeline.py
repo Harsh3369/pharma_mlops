@@ -126,6 +126,13 @@ class DataPrep(Task):
                     )
                 print("Feature Store is created")
 
+                # Overwrite mode does a full refresh of the feature table
+                fs.write_table(
+                name=self.conf['feature_store']['table_name'],
+                df = df_spark,
+                mode = 'overwrite'
+                )
+
     def launch(self):
          
          self._preprocess_data()
