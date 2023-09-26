@@ -24,5 +24,6 @@ feature_store:
     description : "Physician conversion features- claims, procedure, demographic, etc."
 
 mlflow:
+    experiment_name:  "/Shared/dbx/Model-Training"
     mlflow_run_name : "physician_conversion_experiments"
 
