@@ -108,6 +108,13 @@ class Trainmodel(Task):
         bucket_name = self.conf['s3']['bucket_name']
         file_name = self.conf['s3']['model_variable_list_file_path']
         model_features_list = utils.load_pickle_from_s3(self,bucket_name, file_name)
+        
+        remove_list = ['TARGET','index']
+        for i in remove_list:
+            try:
+                model_features_list.remove(i)
+            except ValueError:
+                pass
         print(len(model_features_list))
         
 

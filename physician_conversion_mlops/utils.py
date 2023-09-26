@@ -174,7 +174,7 @@ class utils(Task):
             s3_object = s3.Object(bucket_name, file_path)
 
             # Read the pickle file from the S3 response
-            pickle_data = s3_object['Body'].read()
+            pickle_data = s3_object.get()['Body'].read()
 
             # Deserialize the pickle data to obtain the Python object (list in this case)
             loaded_list = pickle.loads(pickle_data)
