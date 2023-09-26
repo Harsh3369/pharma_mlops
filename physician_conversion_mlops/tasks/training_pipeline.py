@@ -59,6 +59,7 @@ class Trainmodel(Task):
         spark = SparkSession.builder.appName("FeatureStoreExample").getOrCreate()
 
         df_input = utils.load_data_from_s3(self,bucket_name, file_path)
+        
 
         df_input = df_input.reset_index()
         df_input.drop(['index'], axis = 1, inplace = True, errors= 'ignore')
@@ -66,6 +67,10 @@ class Trainmodel(Task):
         #Clean column names
         df_input.columns = df_input.columns.str.strip()
         df_input.columns = df_input.columns.str.replace(' ', '_')
+
+         #Convert ID columns to string type
+        col_list = self.conf['feature_store']['lookup_key']
+        utils.convert_columns_to_string(self,df_input, col_list)
 
         # Defining the features (X) and the target (y)
         X = df_input.drop("TARGET", axis=1)
