@@ -45,6 +45,10 @@ class DataPrep(Task):
                 #Clean column names
                 df_input.columns = df_input.columns.str.strip()
                 df_input.columns = df_input.columns.str.replace(' ', '_')
+                
+                #Convert ID columns to string type
+                col_list = self.conf['feature_store']['lookup_key']
+                utils.convert_columns_to_string(self,df_input, col_list)
 
                 #Drop unwanted column: "HCO Affiliation" - "Affiliation Type" is more valid column for us
                 drop_col_list = self.conf['feature_transformation']['drop_column_list']
@@ -110,6 +114,10 @@ class DataPrep(Task):
                 #Save df_input to databricks feature store
                 spark = SparkSession.builder.appName("FeatureStoreExample").getOrCreate()
                 spark.sql(f"CREATE DATABASE IF NOT EXISTS {self.conf['feature_store']['table_name']}")
+
+                fs.drop_table(
+                name=self.conf['feature_store']['table_name']
+                )
 
                 df_feature = df_input.drop(target_col, axis = 1) #saving the entire features created
                 df_spark = spark.createDataFrame(df_feature)

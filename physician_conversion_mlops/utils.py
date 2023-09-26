@@ -175,6 +175,14 @@ class utils(Task):
         except Exception as e:
             print(f"Error: {str(e)}")
             return None
+        
+    def convert_columns_to_string(self,df, columns):
+        for col in columns:
+            if col in df.columns:
+                df[col] = df[col].astype(str)
+            else:
+                print(f"Column '{col}' not found in the DataFrame.")
+        
     
 
 

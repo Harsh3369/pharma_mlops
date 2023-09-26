@@ -13,7 +13,7 @@ train_model_parameters:
   test_size : 0.2
   
 feature_store:
-    table_name: "physician_conversion_feature_table_v2"
+    table_name: "physician_conversion_feature_table"
     lookup_key: ['NPI_ID', 'HCP_ID']
     label : ['TARGET']
     description : "Physician conversion features- claims, procedure, demographic, etc."
