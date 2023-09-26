@@ -171,6 +171,10 @@ class Trainmodel(Task):
         utils.push_df_to_s3(self,model_validation_df,file_path_validation)  
 
         #train and log model using mlflow
+        client = MlflowClient()
+        # run = client.create_run(experiment.experiment_id)
+        # run = mlflow.start_run(run_id = run.info.run_id)
+       
         mlflow.xgboost.autolog()
         mlflow.set_experiment(self.conf['mlflow']['experiment_name'])
         with mlflow.start_run(self.conf['mlflow']['mlflow_run_name']) as run:
