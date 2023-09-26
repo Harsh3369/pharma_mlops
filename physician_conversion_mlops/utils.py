@@ -2,18 +2,26 @@
 import boto3
 import urllib
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, roc_curve, auc,classification_report
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, classification_report
 
 from io import BytesIO
 import uuid
 import pickle
+import mlflow
+import xgboost as xgb
 
 
 #useful functions
 from physician_conversion_mlops.common import Task
 from pyspark.sql import SparkSession
 from pyspark.dbutils import DBUtils
+from databricks import feature_store
 
 
 class utils(Task):
@@ -182,7 +190,126 @@ class utils(Task):
                 df[col] = df[col].astype(str)
             else:
                 print(f"Column '{col}' not found in the DataFrame.")
+
+    
+    def metrics(self,y_train,y_pred_train,y_val,y_pred_val,y_test,y_pred):
+        """
+            Logs f1_Score and accuracy in MLflow.
+
+            Parameters:
+            - y_test: The true labels (ground truth).
+            - y_pred: The predicted labels (model predictions).
+            - run_name: The name for the MLflow run.
+
+            Returns:
+            - f1score and accuracy
+        """
+
+        f1_train = f1_score(y_train, y_pred_train)
+        accuracy_train = accuracy_score(y_train, y_pred_train)
+
+        f1_val = f1_score(y_val, y_pred_val)
+        accuracy_val = accuracy_score(y_val, y_pred_val)
+
+        f1_test = f1_score(y_test, y_pred)
+        accuracy_test = accuracy_score(y_val, y_pred_val)
+        
+        recall_train=recall_score(y_train, y_pred_train)
+        recall_val=recall_score(y_val, y_pred_val)
+    
+        return {'accuracy_train': round(accuracy_train, 2),'accuracy_val': round(accuracy_val, 2),'accuracy_test': round(accuracy_test, 2),
+                'f1 score train': round(f1_train, 2), 'f1 score val': round(f1_val, 2),'f1 score test': round(f1_test, 2)} 
         
     
 
+    def eval_cm(self,model, X_train, y_train, X_val, y_val, drop_id_col_list):
+
+        model.fit(X_train.drop(drop_id_col_list, axis=1, errors='ignore'), y_train)
+        y_pred_train = model.predict(X_train.drop(drop_id_col_list, axis=1, errors='ignore'))
+        y_pred_val = model.predict(X_val.drop(drop_id_col_list, axis=1, errors='ignore'))
+
+        # Confusion Matrix
+        plt.figure(figsize=(8, 6))
+        cm_train = confusion_matrix(y_train, y_pred_train)
+        cm_val = confusion_matrix(y_val, y_pred_val)
+        plt.subplot(1, 2, 1)
+        sns.heatmap(cm_train, annot=True, fmt='d', cmap='Blues', cbar=False)
+        plt.title('Confusion Matrix (Train)')
+        plt.savefig('confusion_matrix_train.png')
+        plt.subplot(1, 2, 2)
+        sns.heatmap(cm_val, annot=True, fmt='d', cmap='Blues', cbar=False)
+        plt.title('Confusion Matrix (Validation)')
+        plt.savefig('confusion_matrix_validation.png')
+           
+    
+    
+    def roc_curve(self,model, X_val,y_val,drop_id_col_list):
+            """
+            Logs Roc_auc curve in MLflow.
+
+            Parameters:
+            - y_test: The true labels (ground truth).
+            
+
+            Returns:
+            - None
+            """
+            y_pred = model.predict(X_val.drop(drop_id_col_list, axis=1, errors='ignore'))
+            fpr, tpr, thresholds = roc_curve(y_val, y_pred)
+            roc_auc = roc_auc_score(y_val, y_pred)
+
+            # Create and save the ROC curve plot
+            plt.figure(figsize=(8, 6))
+            plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (area = {roc_auc:.2f})')
+            plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+            plt.xlim([0.0, 1.0])
+            plt.ylim([0.0, 1.05])
+            plt.xlabel('False Positive Rate')
+            plt.ylabel('True Positive Rate')
+            plt.title('Receiver Operating Characteristic (ROC) Curve')
+            plt.legend(loc='lower right')
+            roc_curve_plot_path = "roc_curve.png"
+            
+            plt.savefig(roc_curve_plot_path)
+
+    def train_and_log_model(self, mlflow_run_name, params,training_set,
+                            X_train, y_train,
+                            X_val, y_val,
+                            drop_id_col_list):
+         
+         fs = feature_store.FeatureStoreClient()
+
+         mlflow.xgboost.autolog()
+         with mlflow.start_run(run_name = mlflow_run_name):
+              
+            model_xgb = xgb.XGBClassifier(**params, random_state=321)
+            model_xgb.fit(X_train.drop(drop_id_col_list, axis=1, errors='ignore'), y_train)
+
+            y_pred = model_xgb.predict(X_val.drop(drop_id_col_list, axis=1, errors='ignore'))
+
+            fs.log_model(
+                model=model_xgb,
+                artifact_path="usecase",
+                flavor=mlflow.xgboost,
+                training_set= training_set,
+                registered_model_name="Physician_classifer",
+                )
+
+            #evaluate model 
+            mlflow.log_metric(self.eval_cm(model_xgb, X_train, y_train, X_val,
+                                            y_val, drop_id_col_list))
+            
+            fpr, tpr, threshold = self.roc_curve(model_xgb, X_train, y_train, X_val,
+                                            y_val, drop_id_col_list)
+            
+            roc_auc = auc(fpr, tpr)
+            #log
+            mlflow.log_metric("roc_auc",roc_auc)
+
+            # mlflow.xgboost.log_model(xgb_model=model_xgb,artifact_path="usecase2",registered_model_name="Physician Model")
+            mlflow.log_artifact('confusion_matrix.png')
+            mlflow.log_artifact('roc_curve.png')
+
+
+            
 

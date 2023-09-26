@@ -39,7 +39,6 @@ from pyspark.dbutils import DBUtils
 from databricks import feature_store
 from databricks.feature_store import feature_table, FeatureLookup
 
-
 #useful functions
 from physician_conversion_mlops.common import Task
 from physician_conversion_mlops.utils import utils
@@ -78,15 +77,15 @@ class Trainmodel(Task):
 
         # Performing the train-test split to creat training df and inference set
         inference_size = self.conf['train_model_parameters']['inference_size']
-        X_train, X_inference, y_train, y_inference = train_test_split(X, y,
+        X_train_set, X_inference, y_train_set, y_inference = train_test_split(X, y,
                                                                        test_size=inference_size, 
                                                                        random_state=42,
                                                                          stratify= y)
         
 
         #Creating training df for model training by mering X_train, y_train
-        X_train_df = pd.DataFrame(X_train)
-        y_train_df = pd.DataFrame(y_train)
+        X_train_df = pd.DataFrame(X_train_set)
+        y_train_df = pd.DataFrame(y_train_set)
         inference_df = pd.DataFrame(X_inference)
 
         frames = [X_train_df,y_train_df]
@@ -100,9 +99,6 @@ class Trainmodel(Task):
         feature_store_train_df = training_df_spark.select(*col_list_to_keep)
 
         #Save above datasets to s3
-        file_path_training = self.conf['s3']['df_training_set']
-        utils.push_df_to_s3(self,training_df,file_path_training)
-
         file_path_infernece = self.conf['s3']['df_inference_set']
         utils.push_df_to_s3(self,inference_df,file_path_infernece)
 
@@ -132,8 +128,75 @@ class Trainmodel(Task):
         training_pd = training_set.load_df().toPandas()
 
         print('Training set created successfully')
-        print('')
-        print(training_pd.head())
+
+        # Defining the features (X) and the target (y)
+        X = training_pd.drop("TARGET", axis=1)
+        y = training_pd["TARGET"]
+
+        # Performing the train-test split to creat training df and inference set
+        validation_size = self.conf['train_model_parameters']['val_size']
+        X_train, X_val, y_train, y_val = train_test_split(X, y,
+                                                                       test_size=validation_size, 
+                                                                       random_state=42,
+                                                                         stratify= y)
+        
+
+        #Creating training df for model training by mering X_train, y_train
+        X_train_df = pd.DataFrame(X_train)
+        y_train_df = pd.DataFrame(y_train)
+        
+        X_val_df = pd.DataFrame(X_val)
+        y_val_df = pd.DataFrame(y_val)
+
+        train_df_frames = [X_train_df,y_train_df]
+        model_train_df = pd.concat(train_df_frames)  
+
+        val_df_frames = [X_val_df,y_val_df]
+        model_validation_df = pd.concat(val_df_frames)  
+
+        #Save above datasets to s3
+        file_path_training = self.conf['s3']['df_training_set']
+        utils.push_df_to_s3(self,model_train_df,file_path_training)
+
+        file_path_validation = self.conf['s3']['df_validation_set']
+        utils.push_df_to_s3(self,model_validation_df,file_path_validation)  
+
+        #train and log model using mlflow
+        mlflow.xgboost.autolog()
+        with mlflow.start_run(run_name = self.conf['mlflow']['mlflow_run_name']):
+            
+            params = self.conf['train_model_parameters']['model_params']
+            drop_id_col_list = self.conf['feature_store']['lookup_key']
+
+            model_xgb = xgb.XGBClassifier(**params, random_state=321)
+            model_xgb.fit(X_train.drop(drop_id_col_list, axis=1, errors='ignore'), y_train)
+
+            y_pred = model_xgb.predict(X_val.drop(drop_id_col_list, axis=1, errors='ignore'))
+
+            fs.log_model(
+                model=model_xgb,
+                artifact_path="usecase",
+                flavor=mlflow.xgboost,
+                training_set= training_set,
+                registered_model_name="Physician_classifer",
+                )
+
+            #evaluate model 
+            mlflow.log_metric(utils.eval_cm(model_xgb, X_train, y_train, X_val,
+                                            y_val, drop_id_col_list))
+            
+            fpr, tpr, threshold = utils.roc_curve(model_xgb, X_train, y_train, X_val,
+                                            y_val, drop_id_col_list)
+            
+            roc_auc = auc(fpr, tpr)
+            #log
+            mlflow.log_metric("roc_auc",roc_auc)
+
+            # mlflow.xgboost.log_model(xgb_model=model_xgb,artifact_path="usecase2",registered_model_name="Physician Model")
+            mlflow.log_artifact('confusion_matrix.png')
+            mlflow.log_artifact('roc_curve.png')
+
+
 
     def launch(self):
             
