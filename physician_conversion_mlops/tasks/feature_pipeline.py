@@ -115,14 +115,15 @@ class DataPrep(Task):
                 spark = SparkSession.builder.appName("FeatureStoreExample").getOrCreate()
                 spark.sql(f"CREATE DATABASE IF NOT EXISTS {self.conf['feature_store']['table_name']}")
 
-                fs.drop_table(
-                name=self.conf['feature_store']['table_name']
-                )
 
                 df_feature = df_input.drop(target_col, axis = 1) #saving the entire features created
                 df_spark = spark.createDataFrame(df_feature)
 
                 fs = feature_store.FeatureStoreClient()
+
+                fs.drop_table(
+                name=self.conf['feature_store']['table_name']
+                )
 
                 fs.create_table(
                         name=self.conf['feature_store']['table_name'],
@@ -134,12 +135,12 @@ class DataPrep(Task):
                     )
                 print("Feature Store is created")
 
-                # Overwrite mode does a full refresh of the feature table
-                fs.write_table(
-                name=self.conf['feature_store']['table_name'],
-                df = df_spark,
-                mode = 'overwrite'
-                )
+                # # Overwrite mode does a full refresh of the feature table
+                # fs.write_table(
+                # name=self.conf['feature_store']['table_name'],
+                # df = df_spark,
+                # mode = 'overwrite'
+                # )
 
     def launch(self):
          
