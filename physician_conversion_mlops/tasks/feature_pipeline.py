@@ -113,6 +113,7 @@ class DataPrep(Task):
                 
                 #Save df_input to databricks feature store
                 spark = SparkSession.builder.appName("FeatureStoreExample").getOrCreate()
+                spark.sql(f"DROP TABLE IF EXISTS {self.conf['feature_store']['table_name']}")
                 spark.sql(f"CREATE DATABASE IF NOT EXISTS {self.conf['feature_store']['table_name']}")
 
 
@@ -121,9 +122,9 @@ class DataPrep(Task):
 
                 fs = feature_store.FeatureStoreClient()
 
-                fs.drop_table(
-                name=self.conf['feature_store']['table_name']
-                )
+                # fs.drop_table(
+                # name=self.conf['feature_store']['table_name']
+                # )
 
                 fs.create_table(
                         name=self.conf['feature_store']['table_name'],
