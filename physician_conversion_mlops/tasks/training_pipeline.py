@@ -172,8 +172,8 @@ class Trainmodel(Task):
 
         #train and log model using mlflow
         mlflow.xgboost.autolog()
-        mlflow.set_experiment(self.conf['mlflow']['mlflow_run_name'])
-        with mlflow.start_run() as run:
+        mlflow.set_experiment(self.conf['mlflow']['experiment_name'])
+        with mlflow.start_run(self.conf['mlflow']['mlflow_run_name']) as run:
             
             params = self.conf['train_model_parameters']['model_params']
             drop_id_col_list = self.conf['feature_store']['lookup_key']
