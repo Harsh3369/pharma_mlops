@@ -60,7 +60,7 @@ class DataPrep(Task):
                               .replace('\n', '').replace('\t', '').replace(' ', '_') 
                               for c in df_input.columns]
                 
-                print(df_input.columns)
+                print('columns name cleaned')
                 print('')
 
                 #Select variables for feature selection

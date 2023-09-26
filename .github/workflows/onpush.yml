@@ -38,11 +38,11 @@ jobs:
         run: |
           pip install -e ".[local,test]"
 
-      - name: Remove Databricks Secret
-        run: |
-          databricks secrets delete-scope --scope secrets-scope
-          databricks secrets delete-scope --scope feature-store-example-read
-          databricks secrets delete-scope --scope feature-store-example-write
+      # - name: Remove Databricks Secret
+      #   run: |
+      #     databricks secrets delete-scope --scope secrets-scope
+      #     databricks secrets delete-scope --scope feature-store-example-read
+      #     databricks secrets delete-scope --scope feature-store-example-write
 
       - name: Create Databricks Secrets Scope
         run: |
