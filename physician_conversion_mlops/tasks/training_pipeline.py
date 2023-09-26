@@ -61,6 +61,7 @@ class Trainmodel(Task):
         df_input = utils.load_data_from_s3(self,bucket_name, file_path)
 
         df_input = df_input.reset_index()
+        df_input.drop(['index'], axis = 1, inplace = True, errors= 'ignore')
 
         #Clean column names
         df_input.columns = df_input.columns.str.strip()
@@ -79,15 +80,19 @@ class Trainmodel(Task):
         
 
         #Creating training df for model training by mering X_train, y_train
-        X_df = pd.DataFrame(X)
-        y_df = pd.DataFrame(y)
+        X_train_df = pd.DataFrame(X_train)
+        y_train_df = pd.DataFrame(y_train)
         inference_df = pd.DataFrame(X_inference)
 
-        frames = [X_df,y_df]
+        frames = [X_train_df,y_train_df]
         training_df = pd.concat(frames)
 
-        #convert to spark dataframe
+        #convert to spark dataframe with only Look-up key and Target for Featurelookup part
         training_df_spark = spark.createDataFrame(training_df)
+
+        col_list_to_keep = self.conf['feature_store']['lookup_key'] + self.conf['feature_store']['label']
+
+        feature_store_train_df = training_df_spark.select(*col_list_to_keep)
 
         #Save above datasets to s3
         file_path_training = self.conf['s3']['df_training_set']
@@ -114,7 +119,7 @@ class Trainmodel(Task):
         
         # fs.create_training_set looks up features in model_feature_lookups that match the primary key from inference_data_df
         training_set = fs.create_training_set(
-                        df=training_df_spark,
+                        df=feature_store_train_df,
                         feature_lookups = model_feature_lookups,
                         label = self.conf['feature_store']['label'],
                         exclude_columns = self.conf['feature_store']['lookup_key']
@@ -122,6 +127,8 @@ class Trainmodel(Task):
         training_pd = training_set.load_df().toPandas()
 
         print('Training set created successfully')
+        print('')
+        print(training_pd.head())
 
     def launch(self):
             

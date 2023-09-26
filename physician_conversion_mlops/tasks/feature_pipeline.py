@@ -56,7 +56,7 @@ class DataPrep(Task):
 
                 #Clean column names
                 df_input.columns = [c.replace('(', '').replace(')', '').replace(',', '')
-                              .replace(';', '').replace('{', '').replace('}', '')
+                              .replace(';', '').replace('{', '').replace('}', '').replace('-', '')
                               .replace('\n', '').replace('\t', '').replace(' ', '_') 
                               for c in df_input.columns]
                 
@@ -107,8 +107,6 @@ class DataPrep(Task):
                 # df_model_input = df_feature_eng_output.copy()
                 
                 
-
-
                 #Save df_input to databricks feature store
                 spark = SparkSession.builder.appName("FeatureStoreExample").getOrCreate()
                 spark.sql(f"CREATE DATABASE IF NOT EXISTS {self.conf['feature_store']['table_name']}")
