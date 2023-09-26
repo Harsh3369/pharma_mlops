@@ -56,6 +56,7 @@ class Trainmodel(Task):
     def model_train(self):
         bucket_name = self.conf['s3']['bucket_name']
         file_path = self.conf['s3']['file_path']
+        spark = SparkSession.builder.appName("FeatureStoreExample").getOrCreate()
 
         df_input = utils.load_data_from_s3(self,bucket_name, file_path)
 
@@ -85,6 +86,9 @@ class Trainmodel(Task):
         frames = [X_df,y_df]
         training_df = pd.concat(frames)
 
+        #convert to spark dataframe
+        training_df_spark = spark.createDataFrame(training_df)
+
         #Save above datasets to s3
         file_path_training = self.conf['s3']['df_training_set']
         utils.push_df_to_s3(self,training_df,file_path_training)
@@ -96,6 +100,8 @@ class Trainmodel(Task):
         bucket_name = self.conf['s3']['bucket_name']
         file_name = self.conf['s3']['model_variable_list_file_path']
         model_features_list = utils.load_pickle_from_s3(self,bucket_name, file_name)
+        print(type(model_features_list))
+        print('')
 
 
         model_feature_lookups = [
@@ -108,7 +114,7 @@ class Trainmodel(Task):
         
         # fs.create_training_set looks up features in model_feature_lookups that match the primary key from inference_data_df
         training_set = fs.create_training_set(
-                        df=training_df,
+                        df=training_df_spark,
                         feature_lookups = model_feature_lookups,
                         label = self.conf['feature_store']['label'],
                         exclude_columns = self.conf['feature_store']['lookup_key']
