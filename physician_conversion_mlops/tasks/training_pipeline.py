@@ -94,7 +94,7 @@ class Trainmodel(Task):
         #convert to spark dataframe with only Look-up key and Target for Featurelookup part
         training_df_spark = spark.createDataFrame(training_df)
 
-        col_list_to_keep = self.conf['feature_store']['lookup_key'] + self.conf['feature_store']['label']
+        col_list_to_keep = ['NPI_ID', 'HCP_ID','TARGET']
 
         feature_store_train_df = training_df_spark.select(*col_list_to_keep)
 
@@ -106,8 +106,7 @@ class Trainmodel(Task):
         bucket_name = self.conf['s3']['bucket_name']
         file_name = self.conf['s3']['model_variable_list_file_path']
         model_features_list = utils.load_pickle_from_s3(self,bucket_name, file_name)
-        print(type(model_features_list))
-        print('')
+        
 
 
         model_feature_lookups = [
@@ -128,6 +127,15 @@ class Trainmodel(Task):
         training_pd = training_set.load_df().toPandas()
 
         print('Training set created successfully')
+        print(training_pd.shape)
+        print('')
+        print('shape of train data: ')
+        print(X_train_set.shape)
+        print('')
+        print(y_train_set.shape)
+        print('')
+        print(training_pd.isna().sum().sum())
+
 
         # Defining the features (X) and the target (y)
         X = training_pd.drop("TARGET", axis=1)
@@ -193,7 +201,7 @@ class Trainmodel(Task):
             mlflow.log_metric("roc_auc",roc_auc)
 
             # mlflow.xgboost.log_model(xgb_model=model_xgb,artifact_path="usecase2",registered_model_name="Physician Model")
-            mlflow.log_artifact('confusion_matrix.png')
+            mlflow.log_artifact('confusion_matrix_train.png')
             mlflow.log_artifact('roc_curve.png')
 
 
