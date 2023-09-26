@@ -85,11 +85,13 @@ class Trainmodel(Task):
 
         #Creating training df for model training by mering X_train, y_train
         X_train_df = pd.DataFrame(X_train_set)
-        y_train_df = pd.DataFrame(y_train_set)
+        # y_train_df = pd.DataFrame(y_train_set)
         inference_df = pd.DataFrame(X_inference)
 
-        frames = [X_train_df,y_train_df]
-        training_df = pd.concat(frames)
+        #frames = [X_train_df,y_train_df]
+        training_df = X_train_df.copy()
+        training_df['TARGET'] = y_train_set
+        training_df.drop(['index'], axis = 1, inplace = True, errors= 'ignore')
 
         #convert to spark dataframe with only Look-up key and Target for Featurelookup part
         training_df_spark = spark.createDataFrame(training_df)
@@ -106,8 +108,8 @@ class Trainmodel(Task):
         bucket_name = self.conf['s3']['bucket_name']
         file_name = self.conf['s3']['model_variable_list_file_path']
         model_features_list = utils.load_pickle_from_s3(self,bucket_name, file_name)
+        print(len(model_features_list))
         
-
 
         model_feature_lookups = [
             FeatureLookup(
@@ -115,6 +117,7 @@ class Trainmodel(Task):
             feature_names = model_features_list,
             lookup_key = self.conf['feature_store']['lookup_key']
             )]
+        
         
         
         # fs.create_training_set looks up features in model_feature_lookups that match the primary key from inference_data_df
@@ -127,14 +130,6 @@ class Trainmodel(Task):
         training_pd = training_set.load_df().toPandas()
 
         print('Training set created successfully')
-        print(training_pd.shape)
-        print('')
-        print('shape of train data: ')
-        print(X_train_set.shape)
-        print('')
-        print(y_train_set.shape)
-        print('')
-        print(training_pd.isna().sum().sum())
 
 
         # Defining the features (X) and the target (y)
@@ -151,16 +146,15 @@ class Trainmodel(Task):
 
         #Creating training df for model training by mering X_train, y_train
         X_train_df = pd.DataFrame(X_train)
-        y_train_df = pd.DataFrame(y_train)
-        
         X_val_df = pd.DataFrame(X_val)
-        y_val_df = pd.DataFrame(y_val)
 
-        train_df_frames = [X_train_df,y_train_df]
-        model_train_df = pd.concat(train_df_frames)  
+        model_train_df =   X_train_df.copy()
+        model_train_df['TARGET'] = y_train
+        model_train_df.drop(['index'], axis = 1, inplace = True, errors= 'ignore')
 
-        val_df_frames = [X_val_df,y_val_df]
-        model_validation_df = pd.concat(val_df_frames)  
+        model_validation_df =  X_val_df.copy()
+        model_validation_df['TARGET'] = y_val
+        model_validation_df.drop(['index'], axis = 1, inplace = True, errors= 'ignore')
 
         #Save above datasets to s3
         file_path_training = self.conf['s3']['df_training_set']
