@@ -196,16 +196,22 @@ class Trainmodel(Task):
                 )
 
             #evaluate model 
-            #drop_id_col_list = self.conf['feature_store']['lookup_key']
+            #log confusion metrics
             utils.eval_cm(self,model_xgb, X_train, y_train, X_val,
                                             y_val,drop_id_col_list)
             
-            # drop_id_col_list = self.conf['feature_store']['lookup_key']
+            # log roc curve
             utils.roc_curve(self,model_xgb, 
                             X_val,y_val,drop_id_col_list)
             
+            #Log model evaluation metrics
+            mlflow.log_metrics(utils.evaluation_metrics(
+                self,model_xgb,
+                X_train, y_train, 
+                X_val, y_val,
+                  drop_id_col_list))
             
-            # mlflow.xgboost.log_model(xgb_model=model_xgb,artifact_path="usecase2",registered_model_name="Physician Model")
+
             mlflow.log_artifact('confusion_matrix_train.png')
             mlflow.log_artifact('confusion_matrix_validation.png')
             mlflow.log_artifact('roc_curve.png')
