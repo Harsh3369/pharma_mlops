@@ -197,17 +197,14 @@ class Trainmodel(Task):
 
             #evaluate model 
             #drop_id_col_list = self.conf['feature_store']['lookup_key']
-            mlflow.log_metric(utils.eval_cm(self,model_xgb, X_train, y_train, X_val,
-                                            y_val,drop_id_col_list))
-            
-            # drop_id_col_list = self.conf['feature_store']['lookup_key']
-            fpr, tpr, threshold = utils.roc_curve(self,model_xgb, X_train, y_train, X_val,
+            utils.eval_cm(self,model_xgb, X_train, y_train, X_val,
                                             y_val,drop_id_col_list)
             
-            roc_auc = auc(fpr, tpr)
-            #log
-            mlflow.log_metric("roc_auc",roc_auc)
-
+            # drop_id_col_list = self.conf['feature_store']['lookup_key']
+            utils.roc_curve(self,model_xgb, X_train, y_train, X_val,
+                                            y_val,drop_id_col_list)
+            
+            
             # mlflow.xgboost.log_model(xgb_model=model_xgb,artifact_path="usecase2",registered_model_name="Physician Model")
             mlflow.log_artifact('confusion_matrix_train.png')
             mlflow.log_artifact('confusion_matrix_validation.png')

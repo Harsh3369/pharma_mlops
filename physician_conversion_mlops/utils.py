@@ -272,44 +272,7 @@ class utils(Task):
             
             plt.savefig(roc_curve_plot_path)
 
-    def train_and_log_model(self, mlflow_run_name, params,training_set,
-                            X_train, y_train,
-                            X_val, y_val,
-                            drop_id_col_list):
-         
-         fs = feature_store.FeatureStoreClient()
-
-         mlflow.xgboost.autolog()
-         with mlflow.start_run(run_name = mlflow_run_name):
-              
-            model_xgb = xgb.XGBClassifier(**params, random_state=321)
-            model_xgb.fit(X_train.drop(drop_id_col_list, axis=1, errors='ignore'), y_train)
-
-            y_pred = model_xgb.predict(X_val.drop(drop_id_col_list, axis=1, errors='ignore'))
-
-            fs.log_model(
-                model=model_xgb,
-                artifact_path="usecase",
-                flavor=mlflow.xgboost,
-                training_set= training_set,
-                registered_model_name="Physician_classifer",
-                )
-
-            #evaluate model 
-            mlflow.log_metric(self.eval_cm(model_xgb, X_train, y_train, X_val,
-                                            y_val, drop_id_col_list))
-            
-            fpr, tpr, threshold = self.roc_curve(model_xgb, X_train, y_train, X_val,
-                                            y_val, drop_id_col_list)
-            
-            roc_auc = auc(fpr, tpr)
-            #log
-            mlflow.log_metric("roc_auc",roc_auc)
-
-            # mlflow.xgboost.log_model(xgb_model=model_xgb,artifact_path="usecase2",registered_model_name="Physician Model")
-            mlflow.log_artifact('confusion_matrix.png')
-            mlflow.log_artifact('roc_curve.png')
-
+    
 
             
 
