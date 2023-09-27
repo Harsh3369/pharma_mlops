@@ -201,8 +201,8 @@ class Trainmodel(Task):
                                             y_val,drop_id_col_list)
             
             # drop_id_col_list = self.conf['feature_store']['lookup_key']
-            utils.roc_curve(self,model_xgb, X_train, y_train, X_val,
-                                            y_val,drop_id_col_list)
+            utils.roc_curve(self,model_xgb, 
+                            X_val,y_val,drop_id_col_list)
             
             
             # mlflow.xgboost.log_model(xgb_model=model_xgb,artifact_path="usecase2",registered_model_name="Physician Model")
