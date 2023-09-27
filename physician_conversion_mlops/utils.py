@@ -192,34 +192,7 @@ class utils(Task):
                 print(f"Column '{col}' not found in the DataFrame.")
 
     
-    def metrics(self,y_train,y_pred_train,y_val,y_pred_val,y_test,y_pred):
-        """
-            Logs f1_Score and accuracy in MLflow.
-
-            Parameters:
-            - y_test: The true labels (ground truth).
-            - y_pred: The predicted labels (model predictions).
-            - run_name: The name for the MLflow run.
-
-            Returns:
-            - f1score and accuracy
-        """
-
-        f1_train = f1_score(y_train, y_pred_train)
-        accuracy_train = accuracy_score(y_train, y_pred_train)
-
-        f1_val = f1_score(y_val, y_pred_val)
-        accuracy_val = accuracy_score(y_val, y_pred_val)
-
-        f1_test = f1_score(y_test, y_pred)
-        accuracy_test = accuracy_score(y_val, y_pred_val)
-        
-        recall_train=recall_score(y_train, y_pred_train)
-        recall_val=recall_score(y_val, y_pred_val)
     
-        return {'accuracy_train': round(accuracy_train, 2),'accuracy_val': round(accuracy_val, 2),'accuracy_test': round(accuracy_test, 2),
-                'f1 score train': round(f1_train, 2), 'f1 score val': round(f1_val, 2),'f1 score test': round(f1_test, 2)} 
-        
     
 
     def eval_cm(self,model, X_train, y_train, X_val, y_val, drop_id_col_list):
@@ -271,6 +244,37 @@ class utils(Task):
             roc_curve_plot_path = "roc_curve.png"
             
             plt.savefig(roc_curve_plot_path)
+
+
+    def evaluation_metrics(self, model, X_train, y_train, X_val, y_val, drop_id_col_list):
+        
+        """
+            Logs f1_Score and accuracy in MLflow.
+
+            Parameters:
+            - y_test: The true labels (ground truth).
+            - y_pred: The predicted labels (model predictions).
+            - run_name: The name for the MLflow run.
+
+            Returns:
+            - f1score and accuracy
+        """
+
+        model.fit(X_train.drop(drop_id_col_list, axis=1, errors='ignore'), y_train)
+        y_pred_train = model.predict(X_train.drop(drop_id_col_list, axis=1, errors='ignore'))
+        y_pred_val = model.predict(X_val.drop(drop_id_col_list, axis=1, errors='ignore'))
+
+        f1_train = f1_score(y_train, y_pred_train)
+        accuracy_train = accuracy_score(y_train, y_pred_train)
+
+        f1_val = f1_score(y_val, y_pred_val)
+        accuracy_val = accuracy_score(y_val, y_pred_val)
+
+        return {'Train_F1-score' : round(f1_train,2),
+                'Validation_F1-score' : round(f1_val,2),
+                'Train_Accuracy' : round(accuracy_train,2),
+                'Validation_Accuracy' : round(accuracy_val,2)}
+        
 
     
 
