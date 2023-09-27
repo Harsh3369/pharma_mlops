@@ -187,7 +187,7 @@ class Trainmodel(Task):
 
             y_pred = model_xgb.predict(X_val.drop(drop_id_col_list, axis=1, errors='ignore'))
 
-            fs.log_model(
+            mlflow.xgboost.log_model(
                 model=model_xgb,
                 artifact_path="usecase",
                 flavor=mlflow.xgboost,
