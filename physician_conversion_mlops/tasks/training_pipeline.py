@@ -197,11 +197,11 @@ class Trainmodel(Task):
 
             #evaluate model 
             #drop_id_col_list = self.conf['feature_store']['lookup_key']
-            mlflow.log_metric(utils.eval_cm(model_xgb, X_train, y_train, X_val,
+            mlflow.log_metric(utils.eval_cm(self,model_xgb, X_train, y_train, X_val,
                                             y_val))
             
             # drop_id_col_list = self.conf['feature_store']['lookup_key']
-            fpr, tpr, threshold = utils.roc_curve(model_xgb, X_train, y_train, X_val,
+            fpr, tpr, threshold = utils.roc_curve(self,model_xgb, X_train, y_train, X_val,
                                             y_val)
             
             roc_auc = auc(fpr, tpr)
