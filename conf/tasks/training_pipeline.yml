@@ -22,6 +22,7 @@ feature_store:
     lookup_key: ['NPI_ID', 'HCP_ID']
     label : ['TARGET']
     description : "Physician conversion features- claims, procedure, demographic, etc."
+    lookup_col_to_keep : ['NPI_ID', 'HCP_ID','TARGET']
 
 mlflow:
     experiment_name:  "/Shared/dbx/physician_conversion_mlops"

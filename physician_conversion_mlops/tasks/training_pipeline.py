@@ -96,7 +96,7 @@ class Trainmodel(Task):
         #convert to spark dataframe with only Look-up key and Target for Featurelookup part
         training_df_spark = spark.createDataFrame(training_df)
 
-        col_list_to_keep = ['NPI_ID', 'HCP_ID','TARGET']
+        col_list_to_keep = self.conf['feature_store']['lookup_col_to_keep']
 
         feature_store_train_df = training_df_spark.select(*col_list_to_keep)
 
@@ -198,11 +198,11 @@ class Trainmodel(Task):
             #evaluate model 
             #drop_id_col_list = self.conf['feature_store']['lookup_key']
             mlflow.log_metric(utils.eval_cm(self,model_xgb, X_train, y_train, X_val,
-                                            y_val))
+                                            y_val,drop_id_col_list))
             
             # drop_id_col_list = self.conf['feature_store']['lookup_key']
             fpr, tpr, threshold = utils.roc_curve(self,model_xgb, X_train, y_train, X_val,
-                                            y_val)
+                                            y_val,drop_id_col_list)
             
             roc_auc = auc(fpr, tpr)
             #log
