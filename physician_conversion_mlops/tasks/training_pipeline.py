@@ -188,10 +188,10 @@ class Trainmodel(Task):
             y_pred = model_xgb.predict(X_val.drop(drop_id_col_list, axis=1, errors='ignore'))
 
             mlflow.xgboost.log_model(
-                model=model_xgb,
+                xgb_model =model_xgb,
                 artifact_path="usecase",
-                flavor=mlflow.xgboost,
-                training_set= training_set,
+                # flavor=mlflow.xgboost,
+                # training_set= training_set,
                 registered_model_name="Physician_classifer",
                 )
 
