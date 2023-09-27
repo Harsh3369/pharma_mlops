@@ -187,6 +187,7 @@ class Trainmodel(Task):
 
             y_pred = model_xgb.predict(X_val.drop(drop_id_col_list, axis=1, errors='ignore'))
 
+            #mlflow log models for reference
             mlflow.xgboost.log_model(
                 xgb_model =model_xgb,
                 artifact_path="usecase",
@@ -195,7 +196,15 @@ class Trainmodel(Task):
                 registered_model_name="Physician_classifer",
                 )
 
-            #evaluate model 
+            #feature store log model for feature reference
+            fs.log_model(
+                model =model_xgb,
+                artifact_path="usecase",
+                flavor=mlflow.xgboost,
+                training_set= training_set,
+                registered_model_name="Physician_classifer"
+            ) 
+
             #log confusion metrics
             utils.eval_cm(self,model_xgb, X_train, y_train, X_val,
                                             y_val,drop_id_col_list)
