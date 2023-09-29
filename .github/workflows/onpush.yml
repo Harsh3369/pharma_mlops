@@ -70,6 +70,8 @@ jobs:
           databricks secrets put --scope secrets-scope --key aws-secret-key --string-value "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           databricks secrets put --scope secrets-scope --key databricks-host --string-value "${{ secrets.DATABRICKS_HOST }}"
           databricks secrets put --scope secrets-scope --key databricks-token --string-value "${{ secrets.DATABRICKS_TOKEN }}"
+          databricks secrets put --scope secrets-scope --key dynamo-access-key-id --string-value "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          databricks secrets put --scope secrets-scope --key dynamo-secret-key --string-value "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
 
       - name: Workflow  feature_pipeline deploy
         run: |
