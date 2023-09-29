@@ -147,7 +147,7 @@ class DataPrep(Task):
                 #publish the feature store
                 online_store_spec = AmazonDynamoDBSpec(
 
-                    region=self.conf['s3']['aws_region'],
+                    region= 'us-west-2',
 
                     write_secret_prefix="feature-store-example-write/dynamo",
 
