@@ -196,6 +196,7 @@ class utils(Task):
     
 
     def eval_cm(self,model, X_train, y_train, X_val, y_val, drop_id_col_list):
+        
         model.fit(X_train.drop(drop_id_col_list, axis=1, errors='ignore'), y_train)
         y_pred_train = model.predict(X_train.drop(drop_id_col_list, axis=1, errors='ignore'))
         y_pred_val = model.predict(X_val.drop(drop_id_col_list, axis=1, errors='ignore'))

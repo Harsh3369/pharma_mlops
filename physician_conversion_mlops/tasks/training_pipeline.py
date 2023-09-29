@@ -171,7 +171,7 @@ class Trainmodel(Task):
         utils.push_df_to_s3(self,model_validation_df,file_path_validation)  
 
         #train and log model using mlflow
-        client = MlflowClient()
+        #client = MlflowClient()
         # run = client.create_run(experiment.experiment_id)
         # run = mlflow.start_run(run_id = run.info.run_id)
        
