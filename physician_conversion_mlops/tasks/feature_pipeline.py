@@ -22,6 +22,7 @@ from pyspark.sql import SparkSession
 from pyspark.dbutils import DBUtils
 from databricks import feature_store
 from databricks.feature_store import feature_table, FeatureLookup
+from databricks.feature_store.online_store_spec import AmazonDynamoDBSpec
 
 #useful functions
 from physician_conversion_mlops.common import Task
@@ -142,6 +143,22 @@ class DataPrep(Task):
                 # df = df_spark,
                 # mode = 'overwrite'
                 # )
+
+                #publish the feature store
+                online_store_spec = AmazonDynamoDBSpec(
+
+                    region=self.conf['s3']['aws_region'],
+
+                    write_secret_prefix="feature-store-example-write/dynamo",
+
+                    read_secret_prefix="feature-store-example-read/dynamo",
+
+                    table_name = self.conf['feature_store']['table_name']
+
+                    )
+                fs.publish_table(self.conf['feature_store']['table_name'], online_store_spec)
+
+                print("Feature Store published")
 
     def launch(self):
          
