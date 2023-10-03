@@ -1,5 +1,5 @@
 s3: 
-    bucket_name: "pharma-physician-conversion"
+    bucket_name: "mlops-physician-conversion"
     file_path: "Input_data/Input_data.csv"
     aws_region : 'ap-south-1'  # Replace with your desired AWS region
 
