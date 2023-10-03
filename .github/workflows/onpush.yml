@@ -38,23 +38,23 @@ jobs:
         run: |
           pip install -e ".[local,test]"
 
-      - name: Remove Databricks Secret
-        run: |
-          databricks secrets delete-scope --scope secrets-scope
-          databricks secrets delete-scope --scope feature-store-example-read
-          databricks secrets delete-scope --scope feature-store-example-write
-
       # - name: Remove Databricks Secret
       #   run: |
-      #     if databricks secrets list-scopes | grep -q "secrets-scope"; then
-      #       databricks secrets delete-scope --scope secrets-scope
-      #     fi
-      #     if databricks secrets list-scopes | grep -q "feature-store-example-read"; then
-      #       databricks secrets delete-scope --scope feature-store-example-read
-      #     fi
-      #     if databricks secrets list-scopes | grep -q "feature-store-example-write"; then
-      #       databricks secrets delete-scope --scope feature-store-example-write
-      #     fi
+      #     databricks secrets delete-scope --scope secrets-scope
+      #     databricks secrets delete-scope --scope feature-store-example-read
+      #     databricks secrets delete-scope --scope feature-store-example-write
+
+      - name: Remove Databricks Secret
+        run: |
+          if databricks secrets list-scopes | grep -q "secrets-scope"; then
+            databricks secrets delete-scope --scope secrets-scope
+          fi
+          if databricks secrets list-scopes | grep -q "feature-store-example-read"; then
+            databricks secrets delete-scope --scope feature-store-example-read
+          fi
+          if databricks secrets list-scopes | grep -q "feature-store-example-write"; then
+            databricks secrets delete-scope --scope feature-store-example-write
+          fi
 
       - name: Create Databricks Secrets Scope
         run: |
